@@ -52,10 +52,12 @@ public class WeatherActivity extends AppCompatActivity {
     public DrawerLayout drawerLayout;
     private Button navButton;
 
+    private String mWeatherId;
+    private static final String TAG = "WeatherActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        Log.d(TAG, "onCreate: ");
         if (Build.VERSION.SDK_INT >= 21) {
             Window window = getWindow();
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
@@ -85,17 +87,19 @@ public class WeatherActivity extends AppCompatActivity {
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString = prefs.getString("weather", null);
-        final String weatherId;
+
         if (weatherString != null) {
+            Log.d("weatherString", "onCreate: ");
             // 有缓存时直接解析天气数据
             Weather weather = Utility.handleWeatherResponse(weatherString);
-            weatherId = weather.basic.weatherId;
+            mWeatherId = weather.basic.weatherId;
             showWeatherInfo(weather);
         } else {
+            Log.d("network", "onCreate: ");
             // 无缓存时去服务器查询天气
-            weatherId = getIntent().getStringExtra("weather_id");
+            mWeatherId = getIntent().getStringExtra("weather_id");
             weatherLaout.setVisibility(View.INVISIBLE);
-            requestWeather(weatherId);
+            requestWeather(mWeatherId);
         }
 
 
@@ -111,7 +115,7 @@ public class WeatherActivity extends AppCompatActivity {
         swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                requestWeather(weatherId);
+                requestWeather(mWeatherId);
             }
         });
 
@@ -183,6 +187,7 @@ public class WeatherActivity extends AppCompatActivity {
                             editor.putString("weather", responseText);
                             editor.apply();
                             showWeatherInfo(weather);
+                            mWeatherId = weather.basic.weatherId;
                         } else {
                             Toast.makeText(WeatherActivity.this, "获取天气信息失败", Toast.LENGTH_SHORT).show();
                         }
